@@ -107,7 +107,7 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
     crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
-<script src="https://rawgit.com/SteveSanderson/knockout-es5/master/dist/knockout-es5.min.js" type="text/javascript"></script>
+<script src="libs/knockout-es5.min.js" type="text/javascript"></script>
 
 
 <script type="text/javascript">
@@ -140,7 +140,7 @@
         create:  function() {
                     
                     server.createPayment(this.newPayment);
-                    this.newPayment= { 
+                    this.newPayment = { 
                         date: new Date(), 
                         name: '', 
                         amount:0, 
