@@ -5,17 +5,14 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
         crossorigin="anonymous">
-
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
         crossorigin="anonymous">
-
     <meta charset="UTF-8">
     <title>Budgetflow</title>
 </head>
 
 <body>
-
     <div class="table-responsive">
         <table class="table table-striped">
             <thead>
@@ -33,14 +30,11 @@
                     <td data-bind="text: amount"></td>
                     <td data-bind="text: balance"></td>
                 </tr>
-
             </tbody>
         </table>
     </div>
-
     <button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#addPaymentModal">Add payment</button>
     <button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#registerBalanceModal">Register balance</button>
-
     <div id="addPaymentModal" class="modal fade" role="dialog">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -59,27 +53,25 @@
                     <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: frequency" /> </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: create">Create</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: createPayment">Create</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
-
     <div id="registerBalanceModal" class="modal fade" role="dialog">
         <div class="modal-dialog">
-
             <!-- Modal content-->
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                     <h4 class="modal-title">Register balance</h4>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" data-bind="with: newBalance">
                     <div class="col-md-3">Date</div>
-                    <div class="col-md-6 input-group"> <input type="text" class="col-md-12" /> </div>
+                    <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: date" /> </div>
                     <div class="col-md-3">Amount</div>
-                    <div class="col-md-6 input-group"> <input type="text" class="col-md-12" /> </div>
+                    <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: amount" /> </div>
                     <table class="table table-striped">
                         <thead>
                             <tr>
@@ -89,18 +81,23 @@
                                 <th>Transfer</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody data-bind="foreach: closingPayments">
+                            <tr>
+                                <td data-bind="text: date"></td>
+                                <td data-bind="text: payment"></td>
+                                <td data-bind="text: amount"></td>
+                                <td data-bind="text: balance"></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: registerBalance">Register</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>
-
         </div>
     </div>
-
 </body>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
     crossorigin="anonymous"></script>
@@ -108,8 +105,6 @@
     crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
 <script src="libs/knockout-es5.min.js" type="text/javascript"></script>
-
-
 <script type="text/javascript">
     
     window.server = (function (){
@@ -124,7 +119,10 @@
             ];
         };
         api.createPayment = function(newPayment){
-            console.log(newPayment.name);
+            console.log(newPayment);
+        }
+        api.registerBalance = function(newBalance){
+            console.log(newBalance);
         }
         return api;
     })();
@@ -135,10 +133,14 @@
             name: '', 
             amount:0, 
             frequency: 'Once'
-         }, 
+        },
+        newBalance: {
+            date: new Date(), 
+            amount:0,
+            closingPayments:[]
+        },
         cashflow: server.getCashflow(),
-        create:  function() {
-                    
+        createPayment:  function() {
                     server.createPayment(this.newPayment);
                     this.newPayment = { 
                         date: new Date(), 
@@ -147,6 +149,14 @@
                         frequency: 'Once'
                     };
                     
+                },
+        registerBalance:  function() {
+                    server.registerBalance(this.newBalance);
+                    this.newBalance= {
+                        date: new Date(), 
+                        amount:0,
+                        closingPayments:[]
+                    };
                 }
     });
     
