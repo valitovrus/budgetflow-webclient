@@ -13,7 +13,7 @@
 </head>
 
 <body>
-    <div class="table-responsive">
+    <div class="table-responsive" id="cashflowTable">
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -109,58 +109,90 @@
     
     window.server = (function (){
         var api = {};
-        api.getCashflow = function (){
-            return [
+        var payments = [
                     {date: '25/10/2016', payment: 'Regular payment', amount: '-1000.00', balance: '2000.00'},
                     {date: '30/10/2016', payment: 'another payment', amount: '-1000.00', balance: '1000.00'},
                     {date: '30/10/2016', payment: 'another payment', amount: '-1000.00', balance: '1000.00'},
                     {date: '31/10/2016', payment: 'Salary', amount: '+1500.00', balance: '2500.00'},
                     {date: '31/10/2016', payment: 'another salary!!!', amount: '+1500.00', balance: '2500.00'},
             ];
+
+        api.getCashflow = function (){
+            var result = $.Deferred();
+            result.resolve(payments);
+            return result.promise();
         };
         api.createPayment = function(newPayment){
-            console.log(newPayment);
+            newPayment.payment = newPayment.name;
+            newPayment.balance = newPayment.amount;
+            payments.push(newPayment);
+            var result = $.Deferred();
+            result.resolve();
+            return result.promise();
         }
         api.registerBalance = function(newBalance){
-            console.log(newBalance);
+            payments.shift();
+            var result = $.Deferred();
+            result.resolve();
+            return result.promise();
         }
         return api;
     })();
 
-    var vm = ko.track({
+    var cashflowVM = ko.track({
+        cashflow: [],
+        refresh: function (){
+            server.getCashflow()
+            .done(function(cashFlow){
+                cashflowVM.cashflow = cashFlow;
+            });
+        }
+    });
+
+    var createPaymentVM=ko.track({
         newPayment: { 
             date: new Date(), 
             name: '', 
             amount:0, 
             frequency: 'Once'
         },
-        newBalance: {
-            date: new Date(), 
-            amount:0,
-            closingPayments:[]
-        },
-        cashflow: server.getCashflow(),
         createPayment:  function() {
-                    server.createPayment(this.newPayment);
+            server.createPayment(this.newPayment)
+                .done(function() {
+                    cashflowVM.refresh();
                     this.newPayment = { 
                         date: new Date(), 
                         name: '', 
                         amount:0, 
                         frequency: 'Once'
                     };
-                    
-                },
+                });
+        },
+    });
+
+    var registerBalanceVM = ko.track({
+        newBalance: {
+            date: new Date(), 
+            amount:0,
+            closingPayments:[]
+        },
         registerBalance:  function() {
-                    server.registerBalance(this.newBalance);
-                    this.newBalance= {
-                        date: new Date(), 
-                        amount:0,
-                        closingPayments:[]
-                    };
-                }
+            server.registerBalance(this.newBalance).done(function(){
+                this.newBalance = {
+                    date: new Date(), 
+                    amount:0,
+                    closingPayments:[]
+                };
+            });
+        }
     });
     
-    ko.applyBindings(vm); 
+    cashflowVM.refresh();
+
+    ko.applyBindings(cashflowVM, $('#cashflowTable')[0]);
+    ko.applyBindings(registerBalanceVM, $('#registerBalanceModal')[0]);
+    ko.applyBindings(createPaymentVM, $('#addPaymentModal')[0]);  
+
     
 </script>
 
