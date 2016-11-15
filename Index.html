@@ -109,31 +109,41 @@
     
     window.server = (function (){
         var api = {};
-        var payments = [
-                    {date: '25/10/2016', payment: 'Regular payment', amount: '-1000.00', balance: '2000.00'},
-                    {date: '30/10/2016', payment: 'another payment', amount: '-1000.00', balance: '1000.00'},
-                    {date: '30/10/2016', payment: 'another payment', amount: '-1000.00', balance: '1000.00'},
-                    {date: '31/10/2016', payment: 'Salary', amount: '+1500.00', balance: '2500.00'},
-                    {date: '31/10/2016', payment: 'another salary!!!', amount: '+1500.00', balance: '2500.00'},
-            ];
-
+        var baseUrl='http://localhost:5000/api/';
         api.getCashflow = function (){
             var result = $.Deferred();
-            result.resolve(payments);
+            
+            $.ajax({
+                url: baseUrl + 'cashflow',
+            }).done(function(cashflow){
+                result.resolve(cashflow.items);
+            });
+            
             return result.promise();
         };
         api.createPayment = function(newPayment){
-            newPayment.payment = newPayment.name;
-            newPayment.balance = newPayment.amount;
-            payments.push(newPayment);
             var result = $.Deferred();
-            result.resolve();
+            $.ajax({
+                url: baseUrl + 'payments',
+                method: 'POST',
+                contentType:'application/json',
+                data: JSON.stringify(newPayment)
+            }).done(function(paymentId){
+                result.resolve(paymentId);
+            });
+
             return result.promise();
         }
         api.registerBalance = function(newBalance){
-            payments.shift();
             var result = $.Deferred();
-            result.resolve();
+            $.ajax({
+                url: baseUrl + 'balances',
+                method: 'POST',
+                contentType:'application/json',
+                data: JSON.stringify(newBalance)
+            }).done(function(balanceId){
+                result.resolve(balanceId);
+            });
             return result.promise();
         }
         return api;
@@ -178,6 +188,7 @@
         },
         registerBalance:  function() {
             server.registerBalance(this.newBalance).done(function(){
+                cashflowVM.refresh();
                 this.newBalance = {
                     date: new Date(), 
                     amount:0,
