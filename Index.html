@@ -105,10 +105,13 @@
     crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
 <script src="libs/knockout-es5.min.js" type="text/javascript"></script>
+<script src="libs/jquery-maskedinput.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.16.0/moment.min.js"></script>
 
 <script type="text/javascript">
-    
+    jQuery(function(){ $("[data-bind='value: formattedDate']").mask('99/99/9999') });
+
+
     window.server = (function (){
         var api = {};
         var baseUrl='http://localhost:5000/api/';
