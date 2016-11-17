@@ -44,7 +44,7 @@
                 </div>
                 <div class="modal-body" data-bind="with: newPayment">
                     <div class="col-md-3">Date</div>
-                    <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: date"> </div>
+                    <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: formattedDate"> </div>
                     <div class="col-md-3">Payment name</div>
                     <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: name" /> </div>
                     <div class="col-md-3">Amount</div>
@@ -69,7 +69,7 @@
                 </div>
                 <div class="modal-body" data-bind="with: newBalance">
                     <div class="col-md-3">Date</div>
-                    <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: date" /> </div>
+                    <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: formattedDate" /> </div>
                     <div class="col-md-3">Amount</div>
                     <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: amount" /> </div>
                     <table class="table table-striped">
@@ -151,60 +151,78 @@
         return api;
     })();
 
-    var cashflowVM = ko.track({
-        cashflow: [],
-        refresh: function (){
+    var Payment = function (){
+        this.date = moment();
+        this.name = '';
+        this.amount=0;
+        this.frequency = 0;
+        this.formattedDate = ko.pureComputed({
+            read: function () {
+                return this.date.format('DD/MM/YYYY');
+            },
+            write: function (value) {
+                this.date = moment(value,"DD/MM/YYYY");
+            },
+            owner: this
+        });
+        return ko.track(this);
+    };
+
+    var Balance = function (){
+        this.date = moment();
+        this.amount=0;
+        this.formattedDate = ko.pureComputed({
+            read: function () {
+                return this.date.format('DD/MM/YYYY');
+            },
+            write: function (value) {
+                this.date = moment(value,"DD/MM/YYYY");
+            },
+            owner: this
+        });
+        this.closingPayments=[];
+        return ko.track(this);
+    };
+
+    var CashflowVM = function() {
+        var self = this;
+        this.cashflow = [];
+        this.refresh = function (){
             server.getCashflow()
             .done(function(cashFlow){
-                cashflowVM.cashflow = cashFlow;
+                self.cashflow = cashFlow;
             });
-        }
-    });
-
-    var createPaymentVM=ko.track({
-        newPayment: { 
-            date: new Date(), 
-            name: '', 
-            amount:0, 
-            frequency: 'Once'
-        },
-        createPayment:  function() {
-            server.createPayment(this.newPayment)
-                .done(function() {
-                    cashflowVM.refresh();
-                    this.newPayment = { 
-                        date: new Date(), 
-                        name: '', 
-                        amount:0, 
-                        frequency: 'Once'
-                    };
-                });
-        },
-    });
-
-    var registerBalanceVM = ko.track({
-        newBalance: {
-            date: new Date(), 
-            amount:0,
-            closingPayments:[]
-        },
-        registerBalance:  function() {
-            server.registerBalance(this.newBalance).done(function(){
-                cashflowVM.refresh();
-                this.newBalance = {
-                    date: new Date(), 
-                    amount:0,
-                    closingPayments:[]
-                };
-            });
-        }
-    });
+        };
+        return ko.track(this);
+    };
     
-    cashflowVM.refresh();
+    var CreatePaymentVM = function(cashflow) {
+        this.newPayment = new Payment(),
+        this.createPayment = function() {
+            server.createPayment(this.newPayment)
+            .done(function() {
+                cashflow.refresh();
+                this.newPayment = new Payment();
+            });
+        }
+    };
 
-    ko.applyBindings(cashflowVM, $('#cashflowTable')[0]);
-    ko.applyBindings(registerBalanceVM, $('#registerBalanceModal')[0]);
-    ko.applyBindings(createPaymentVM, $('#addPaymentModal')[0]);  
+    var RegisterBalanceVM = function (cashflow) {
+        this.newBalance = new Balance();
+        this.registerBalance = function() {
+            server.registerBalance(this.newBalance).done(function(){
+                cashflow.refresh();
+                this.newBalance = new Balance();
+            });
+        };
+        return ko.track(this);
+    };
+    var csVM = new CashflowVM();
+    csVM.refresh();
+
+    ko.applyBindings(csVM, $('#cashflowTable')[0]);
+    ko.applyBindings(new RegisterBalanceVM(csVM), $('#registerBalanceModal')[0]);
+    ko.applyBindings(new CreatePaymentVM(csVM), $('#addPaymentModal')[0]);  
 
     
 </script>
