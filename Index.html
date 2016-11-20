@@ -50,8 +50,15 @@
                     <div class="col-md-3">Amount</div>
                     <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: amount" /> </div>
                     <div class="col-md-3">Frequency</div>
-                    <div class="col-md-6 input-group"> <input type="text" class="col-md-12" data-bind="value: frequency" /> </div>
-                </div>
+                    <div class="col-md-6 input-group"> 
+						<select class="form-control" id="sel1" data-bind="value: frequencyName">
+							<option>Once</option>
+							<option>Weekly</option>
+							<option>Monthly</option>
+							<option>Yearly</option>
+						</select>
+					</div>
+				</div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: createPayment">Create</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -164,7 +171,22 @@
                 return this.date.format('DD/MM/YYYY');
             },
             write: function (value) {
-                this.date = moment(value,"DD/MM/YYYY");
+				this.date = moment.utc(value,"DD/MM/YYYY");
+            },
+            owner: this
+        });
+		this.frequencyName = ko.pureComputed({
+            read: function () {
+				if(this.frequency==0) return "Once";
+				if(this.frequency==1) return "Weekly";
+				if(this.frequency==2) return "Monthly";
+				if(this.frequency==3) return "Yearly";
+            },
+            write: function (value) {
+				if(value == "Once") this.frequency=0;
+				if(value == "Weekly") this.frequency=1;
+				if(value == "Monthly") this.frequency=2;
+				if(value == "Yearly") this.frequency=3;
             },
             owner: this
         });
@@ -200,12 +222,13 @@
     };
     
     var CreatePaymentVM = function(cashflow) {
+		var self=this;
         this.newPayment = new Payment(),
         this.createPayment = function() {
             server.createPayment(this.newPayment)
             .done(function() {
                 cashflow.refresh();
-                this.newPayment = new Payment();
+                self.newPayment = new Payment();
             });
         }
     };
