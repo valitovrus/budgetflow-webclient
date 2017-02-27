@@ -162,7 +162,7 @@
     })();
 
     var Payment = function (){
-        this.date = moment();
+        this.date = moment.utc(moment().format('LL'),'LL')
         this.name = '';
         this.amount=0;
         this.frequency = 0;
@@ -194,7 +194,7 @@
     };
 
     var Balance = function (){
-        this.date = moment();
+        this.date = moment.utc(moment().format('LL'),'LL');
         this.amount=0;
         this.formattedDate = ko.pureComputed({
             read: function () {
