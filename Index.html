@@ -13,28 +13,90 @@
 </head>
 
 <body>
-    <div class="table-responsive" id="cashflowTable">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Payment</th>
-                    <th>Amount</th>
-                    <th>Balance</th>
-                </tr>
-            </thead>
-            <tbody data-bind="foreach: cashflow">
-                <tr>
-                    <td data-bind="text: moment(date).format('DD/MM/YYYY')"></td>
-                    <td data-bind="text: payment"></td>
-                    <td data-bind="text: amount"></td>
-                    <td data-bind="text: balance"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#addPaymentModal">Add payment</button>
-    <button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#registerBalanceModal">Register balance</button>
+    
+	
+	  <!-- Nav tabs -->
+	  <ul class="nav nav-tabs" role="tablist">
+		<li role="presentation" class="active"><a href="#cashflow" aria-controls="cashflow" role="tab" data-toggle="tab">Cashflow</a></li>
+		<li role="presentation"><a href="#payments" aria-controls="payments" role="tab" data-toggle="tab">Payments</a></li>
+		<li role="presentation"><a href="#balances" aria-controls="balances" role="tab" data-toggle="tab">Balances</a></li>
+	  </ul>
+
+
+	      <!-- Tab panes -->
+	  <div class="tab-content">
+		<div role="tabpanel" class="tab-pane active" id="cashflow">
+			<button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#addPaymentModal">Add payment</button>
+			<button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#registerBalanceModal">Register balance</button>
+			<div class="table-responsive" id="cashflowTable">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Date</th>
+							<th>Payment</th>
+							<th>Amount</th>
+							<th>Balance</th>
+						</tr>
+					</thead>
+					<tbody data-bind="foreach: cashflow">
+						<tr>
+							<td data-bind="text: moment(date).format('DD/MM/YYYY')"></td>
+							<td data-bind="text: payment"></td>
+							<td data-bind="text: amount"></td>
+							<td data-bind="text: balance"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div role="tabpanel" class="tab-pane" id="payments">
+			<button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#addPaymentModal">Add payment</button>
+			<div class="table-responsive" id="paymentsTable">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Amount</th>
+							<th>Date</th>
+							<th>Frequency</th>
+						</tr>
+					</thead>
+						<tbody data-bind="foreach: ">
+							<tr>
+								<td data-bind="text: name"></td>
+								<td data-bind="text: amount"></td>
+								<td data-bind="text: moment(date).format('DD/MM/YYYY')"></td>
+								<td data-bind="text: frequency"></td>
+							</tr>
+						</tbody>
+				</table>
+			</div>
+		</div>
+
+		<div role="tabpanel" class="tab-pane" id="balances">
+			<button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#registerBalanceModal">Register balance</button>
+			<div class="table-responsive" id="balancesTable">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Date</th>
+							<th>Amount</th>
+						</tr>
+					</thead>
+						<tbody data-bind="foreach: ">
+							<tr>
+								<td data-bind="text: moment(date).format('DD/MM/YYYY')"></td>
+								<td data-bind="text: amount"></td>
+							</tr>
+						</tbody>
+				</table>
+			</div>
+		</div>
+		
+	  </div>
+	 
+	
+    
     <div id="addPaymentModal" class="modal fade" role="dialog">
         <div class="modal-dialog">
             <div class="modal-content">
