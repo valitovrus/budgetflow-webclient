@@ -66,7 +66,7 @@
 								<td data-bind="text: name"></td>
 								<td data-bind="text: amount"></td>
 								<td data-bind="text: moment(date).format('DD/MM/YYYY')"></td>
-								<td data-bind="text: frequency"></td>
+								<td data-bind="text: frequencyName"></td>
 							</tr>
 						</tbody>
 				</table>
@@ -248,11 +248,12 @@
         return api;
     })();
 
-    var Payment = function (){
-        this.date = moment.utc(moment().format('LL'),'LL')
-        this.name = '';
-        this.amount=0;
-        this.frequency = 0;
+    var Payment = function (dataSource){
+		dataSource = dataSource || {};
+        this.date = dataSource.date || moment.utc(moment().format('LL'),'LL')
+        this.name = dataSource.name || '';
+        this.amount= dataSource.amount || 0;
+        this.frequency = dataSource.frequency ||0;
         this.formattedDate = ko.pureComputed({
             read: function () {
                 return this.date.format('DD/MM/YYYY');
@@ -314,9 +315,10 @@
         this.refresh = function (){
             server.getPayments()
             .done(function(payments){
-				self.payments = payments;
+				self.payments = payments.map(function(p){return new Payment(p);});
             });
         };
+		
         return ko.track(this);
     };
 	var BalancesVM = function() {
@@ -326,6 +328,29 @@
             server.getBalances()
             .done(function(balances){
 				self.balances = balances;
+            });
+        };
+        return ko.track(this);
+    };
+	
+    var CreatePaymentVM = function(main) {
+		var self=this;
+        this.newPayment = new Payment(),
+        this.createPayment = function() {
+            server.createPayment(this.newPayment)
+            .done(function() {
+                main.refresh();
+                self.newPayment = new Payment();
+            });
+        }
+    };
+	
+    var RegisterBalanceVM = function (main) {
+        this.newBalance = new Balance();
+        this.registerBalance = function() {
+            server.registerBalance(this.newBalance).done(function(){
+                main.refresh();
+                this.newBalance = new Balance();
             });
         };
         return ko.track(this);
@@ -342,28 +367,7 @@
 			this.balancesVM.refresh();
 		};
 	};
-    var CreatePaymentVM = function(main) {
-		var self=this;
-        this.newPayment = new Payment(),
-        this.createPayment = function() {
-            server.createPayment(this.newPayment)
-            .done(function() {
-                main.refresh();
-                self.newPayment = new Payment();
-            });
-        }
-    };
 
-    var RegisterBalanceVM = function (main) {
-        this.newBalance = new Balance();
-        this.registerBalance = function() {
-            server.registerBalance(this.newBalance).done(function(){
-                main.refresh();
-                this.newBalance = new Balance();
-            });
-        };
-        return ko.track(this);
-    };
 	
     	var mainVM = new MainVM();
 	mainVM.refresh();
