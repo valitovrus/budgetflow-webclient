@@ -24,8 +24,8 @@
 
 
 	      <!-- Tab panes -->
-	  <div class="tab-content">
-		<div role="tabpanel" class="tab-pane active" id="cashflow">
+	  <div class="tab-content" id="main">
+		<div role="tabpanel" class="tab-pane active" id="cashflow" data-bind="with: cashflowVM">
 			<button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#addPaymentModal">Add payment</button>
 			<button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#registerBalanceModal">Register balance</button>
 			<div class="table-responsive" id="cashflowTable">
@@ -49,7 +49,7 @@
 				</table>
 			</div>
 		</div>
-		<div role="tabpanel" class="tab-pane" id="payments">
+		<div role="tabpanel" class="tab-pane" id="payments" data-bind="with: paymentsVM">
 			<button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#addPaymentModal">Add payment</button>
 			<div class="table-responsive" id="paymentsTable">
 				<table class="table table-striped">
@@ -73,7 +73,7 @@
 			</div>
 		</div>
 
-		<div role="tabpanel" class="tab-pane" id="balances">
+		<div role="tabpanel" class="tab-pane" id="balances" data-bind="with: balancesVM">
 			<button type="button" class="btn btn-info btn-md" data-toggle="modal" data-target="#registerBalanceModal">Register balance</button>
 			<div class="table-responsive" id="balancesTable">
 				<table class="table table-striped">
@@ -330,41 +330,47 @@
         };
         return ko.track(this);
     };
-    var CreatePaymentVM = function(cashflow) {
+	
+	var MainVM = function(){
+		this.paymentsVM = new PaymentsVM();
+		this.balancesVM = new BalancesVM();
+		this.cashflowVM = new CashflowVM();
+		
+		this.refresh = function() {
+			this.cashflowVM.refresh();
+			this.paymentsVM.refresh();
+			this.balancesVM.refresh();
+		};
+	};
+    var CreatePaymentVM = function(main) {
 		var self=this;
         this.newPayment = new Payment(),
         this.createPayment = function() {
             server.createPayment(this.newPayment)
             .done(function() {
-                cashflow.refresh();
+                main.refresh();
                 self.newPayment = new Payment();
             });
         }
     };
 
-    var RegisterBalanceVM = function (cashflow) {
+    var RegisterBalanceVM = function (main) {
         this.newBalance = new Balance();
         this.registerBalance = function() {
             server.registerBalance(this.newBalance).done(function(){
-                cashflow.refresh();
+                main.refresh();
                 this.newBalance = new Balance();
             });
         };
         return ko.track(this);
     };
-    var csVM = new CashflowVM();
-    csVM.refresh();
-	var paymentsVM = new PaymentsVM();
-    paymentsVM.refresh();
 	
-	var balancesVM = new BalancesVM();
-    balancesVM.refresh();
+    	var mainVM = new MainVM();
+	mainVM.refresh();
 	
-    ko.applyBindings(csVM, $('#cashflowTable')[0]);
-	ko.applyBindings(paymentsVM, $('#paymentsTable')[0]);
-	ko.applyBindings(balancesVM, $('#balancesTable')[0]);
-    ko.applyBindings(new RegisterBalanceVM(csVM), $('#registerBalanceModal')[0]);
-    ko.applyBindings(new CreatePaymentVM(csVM), $('#addPaymentModal')[0]);  
+    ko.applyBindings(mainVM, $('#main')[0]);
+    ko.applyBindings(new RegisterBalanceVM(mainVM), $('#registerBalanceModal')[0]);
+    ko.applyBindings(new CreatePaymentVM(mainVM), $('#addPaymentModal')[0]);  
 
     
 </script>
