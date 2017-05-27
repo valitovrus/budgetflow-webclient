@@ -61,7 +61,7 @@
 							<th>Frequency</th>
 						</tr>
 					</thead>
-						<tbody data-bind="foreach: ">
+						<tbody data-bind="foreach: payments">
 							<tr>
 								<td data-bind="text: name"></td>
 								<td data-bind="text: amount"></td>
@@ -83,7 +83,7 @@
 							<th>Amount</th>
 						</tr>
 					</thead>
-						<tbody data-bind="foreach: ">
+						<tbody data-bind="foreach: balances">
 							<tr>
 								<td data-bind="text: moment(date).format('DD/MM/YYYY')"></td>
 								<td data-bind="text: amount"></td>
@@ -195,6 +195,31 @@
             
             return result.promise();
         };
+		
+		api.getPayments = function (){
+            var result = $.Deferred();
+            
+            $.ajax({
+                url: baseUrl + 'payments',
+            }).done(function(payments){
+                result.resolve(payments);
+            });
+            
+            return result.promise();
+        };
+		
+		api.getBalances = function (){
+            var result = $.Deferred();
+            
+            $.ajax({
+                url: baseUrl + 'balances',
+            }).done(function(balances){
+                result.resolve(balances);
+            });
+            
+            return result.promise();
+        };
+		
         api.createPayment = function(newPayment){
             var result = $.Deferred();
             $.ajax({
@@ -282,7 +307,29 @@
         };
         return ko.track(this);
     };
-    
+	
+	var PaymentsVM = function() {
+        var self = this;
+        this.payments = [];
+        this.refresh = function (){
+            server.getPayments()
+            .done(function(payments){
+				self.payments = payments;
+            });
+        };
+        return ko.track(this);
+    };
+	var BalancesVM = function() {
+        var self = this;
+        this.balances = [];
+        this.refresh = function (){
+            server.getBalances()
+            .done(function(balances){
+				self.balances = balances;
+            });
+        };
+        return ko.track(this);
+    };
     var CreatePaymentVM = function(cashflow) {
 		var self=this;
         this.newPayment = new Payment(),
@@ -307,8 +354,15 @@
     };
     var csVM = new CashflowVM();
     csVM.refresh();
-
+	var paymentsVM = new PaymentsVM();
+    paymentsVM.refresh();
+	
+	var balancesVM = new BalancesVM();
+    balancesVM.refresh();
+	
     ko.applyBindings(csVM, $('#cashflowTable')[0]);
+	ko.applyBindings(paymentsVM, $('#paymentsTable')[0]);
+	ko.applyBindings(balancesVM, $('#balancesTable')[0]);
     ko.applyBindings(new RegisterBalanceVM(csVM), $('#registerBalanceModal')[0]);
     ko.applyBindings(new CreatePaymentVM(csVM), $('#addPaymentModal')[0]);  
 
