@@ -83,12 +83,14 @@
 						<tr>
 							<th>Date</th>
 							<th>Amount</th>
+                            <th>Actions</th>
 						</tr>
 					</thead>
 						<tbody data-bind="foreach: balances">
 							<tr>
 								<td data-bind="text: moment(date).format('DD/MM/YYYY')"></td>
 								<td data-bind="text: amount"></td>
+                                <td><a href="#" data-bind="click: $parent.remove">Remove</a></td>
 							</tr>
 						</tbody>
 				</table>
@@ -313,7 +315,7 @@
         return ko.track(this);
     };
 	
-	var PaymentsVM = function() {
+	var PaymentsVM = function(refreshCallback) {
         var self = this;
         self.payments = [];
         self.refresh = function (){
@@ -324,20 +326,25 @@
         };
 		self.remove = function(){
             server.payments.delete(this).done(function(){
-                self.refresh();
+                refreshCallback();
             });
-            
         };
 
         return ko.track(this);
     };
-	var BalancesVM = function() {
+	var BalancesVM = function(refreshCallback) {
         var self = this;
-        this.balances = [];
-        this.refresh = function (){
+        self.balances = [];
+        self.refresh = function (){
             server.balances.get()
             .done(function(balances){
 				self.balances = balances;
+            });
+        };
+
+        self.remove = function(){
+            server.balances.delete(this).done(function(){
+                refreshCallback();
             });
         };
         return ko.track(this);
@@ -367,15 +374,15 @@
     };
 	
 	var MainVM = function(){
-		this.paymentsVM = new PaymentsVM();
-		this.balancesVM = new BalancesVM();
-		this.cashflowVM = new CashflowVM();
-		
-		this.refresh = function() {
-			this.cashflowVM.refresh();
-			this.paymentsVM.refresh();
-			this.balancesVM.refresh();
+        var self = this;
+        self .refresh = function() {
+			self.cashflowVM.refresh();
+			self.paymentsVM.refresh();
+			self.balancesVM.refresh();
 		};
+		self.paymentsVM = new PaymentsVM(self.refresh);
+		self.balancesVM = new BalancesVM(self.refresh);
+		self.cashflowVM = new CashflowVM();
 	};
 
 	
