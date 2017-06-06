@@ -59,6 +59,7 @@
 							<th>Amount</th>
 							<th>Date</th>
 							<th>Frequency</th>
+                            <th>Actions</th>
 						</tr>
 					</thead>
 						<tbody data-bind="foreach: payments">
@@ -67,6 +68,7 @@
 								<td data-bind="text: amount"></td>
 								<td data-bind="text: moment(date).format('DD/MM/YYYY')"></td>
 								<td data-bind="text: frequencyName"></td>
+                                <td><a href="#" data-bind="click: $parent.remove">Remove</a></td>
 							</tr>
 						</tbody>
 				</table>
@@ -206,7 +208,26 @@
             });
 
             return result.promise();
-        }
+        };
+
+        this.delete = function(deletingItem) {
+            var result = $.Deferred();
+            if(!deletingItem.id) { 
+                console.error('Cannot delete item without id');
+                console.log(deletingItem);
+                result.reject(deletingItem);
+                return result.promise();
+            };
+
+            $.ajax({
+                url: resourcePath + '/' + deletingItem.id,
+                method: 'DELETE',
+            }).done(function(id){
+                result.resolve(id);
+            });
+
+            return result.promise();
+        };
     };
 
     window.server = (function (){
@@ -232,6 +253,7 @@
 
     var Payment = function (dataSource){
 		dataSource = dataSource || {};
+        this.id = dataSource.id;
         this.date = dataSource.date || moment.utc(moment().format('LL'),'LL')
         this.name = dataSource.name || '';
         this.amount= dataSource.amount || 0;
@@ -293,14 +315,20 @@
 	
 	var PaymentsVM = function() {
         var self = this;
-        this.payments = [];
-        this.refresh = function (){
+        self.payments = [];
+        self.refresh = function (){
             server.payments.get()
             .done(function(payments){
 				self.payments = payments.map(function(p){return new Payment(p);});
             });
         };
-		
+		self.remove = function(){
+            server.payments.delete(this).done(function(){
+                self.refresh();
+            });
+            
+        };
+
         return ko.track(this);
     };
 	var BalancesVM = function() {
