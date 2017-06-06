@@ -180,6 +180,34 @@
 <script type="text/javascript">
     jQuery(function(){ $("[data-bind='value: formattedDate']").mask('99/99/9999') });
 
+    var CrudService = function(settings) {
+        var resourcePath = settings.baseUrl + settings.resource;
+        this.get = function(){
+            var result = $.Deferred();
+            
+            $.ajax({
+                url: resourcePath,
+            }).done(function(items){
+                result.resolve(items);
+            });
+            
+            return result.promise();
+        };
+
+        this.create = function(newItem){
+            var result = $.Deferred();
+            $.ajax({
+                url: resourcePath,
+                method: 'POST',
+                contentType:'application/json',
+                data: JSON.stringify(newItem)
+            }).done(function(id){
+                result.resolve(id);
+            });
+
+            return result.promise();
+        }
+    };
 
     window.server = (function (){
         var api = {};
@@ -196,55 +224,9 @@
             return result.promise();
         };
 		
-		api.getPayments = function (){
-            var result = $.Deferred();
-            
-            $.ajax({
-                url: baseUrl + 'payments',
-            }).done(function(payments){
-                result.resolve(payments);
-            });
-            
-            return result.promise();
-        };
+        api.payments = new CrudService({baseUrl:baseUrl, resource:'payments'});
+        api.balances = new CrudService({baseUrl:baseUrl, resource:'balances'});
 		
-		api.getBalances = function (){
-            var result = $.Deferred();
-            
-            $.ajax({
-                url: baseUrl + 'balances',
-            }).done(function(balances){
-                result.resolve(balances);
-            });
-            
-            return result.promise();
-        };
-		
-        api.createPayment = function(newPayment){
-            var result = $.Deferred();
-            $.ajax({
-                url: baseUrl + 'payments',
-                method: 'POST',
-                contentType:'application/json',
-                data: JSON.stringify(newPayment)
-            }).done(function(paymentId){
-                result.resolve(paymentId);
-            });
-
-            return result.promise();
-        }
-        api.registerBalance = function(newBalance){
-            var result = $.Deferred();
-            $.ajax({
-                url: baseUrl + 'balances',
-                method: 'POST',
-                contentType:'application/json',
-                data: JSON.stringify(newBalance)
-            }).done(function(balanceId){
-                result.resolve(balanceId);
-            });
-            return result.promise();
-        }
         return api;
     })();
 
@@ -313,7 +295,7 @@
         var self = this;
         this.payments = [];
         this.refresh = function (){
-            server.getPayments()
+            server.payments.get()
             .done(function(payments){
 				self.payments = payments.map(function(p){return new Payment(p);});
             });
@@ -325,7 +307,7 @@
         var self = this;
         this.balances = [];
         this.refresh = function (){
-            server.getBalances()
+            server.balances.get()
             .done(function(balances){
 				self.balances = balances;
             });
@@ -337,7 +319,7 @@
 		var self=this;
         this.newPayment = new Payment(),
         this.createPayment = function() {
-            server.createPayment(this.newPayment)
+            server.payments.create(this.newPayment)
             .done(function() {
                 main.refresh();
                 self.newPayment = new Payment();
@@ -348,7 +330,7 @@
     var RegisterBalanceVM = function (main) {
         this.newBalance = new Balance();
         this.registerBalance = function() {
-            server.registerBalance(this.newBalance).done(function(){
+            server.balances.create(this.newBalance).done(function(){
                 main.refresh();
                 this.newBalance = new Balance();
             });
@@ -369,7 +351,7 @@
 	};
 
 	
-    	var mainVM = new MainVM();
+    var mainVM = new MainVM();
 	mainVM.refresh();
 	
     ko.applyBindings(mainVM, $('#main')[0]);
